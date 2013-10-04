@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">getCoordinate</string>
+    <string name="touch_display">touch_me!</string>
+    <string name="menu1">座標変換</string>
+    <string name="menu2">IPアドレス</string>
+    <string name="menu3">終了</string>
+    <string name="title_activity_main">座標送信</string>
+
+</resources>
