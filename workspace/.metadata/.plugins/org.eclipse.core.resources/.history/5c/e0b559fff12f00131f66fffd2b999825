@@ -39,7 +39,8 @@ public class MainActivity extends Activity implements OnClickListener,
 	private static final int REQUEST_CODE = 2;
 	private SensorManager manager;
 	private TextView values;
-	private float fillterx, filltery, fillterz = 0;
+	private SensorManager sensorManager;
+    private float fillterx, filltery, fillterz = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,12 +52,12 @@ public class MainActivity extends Activity implements OnClickListener,
 
 		/* ボタンの実装 */
 		// ボタンの取得
-		Button button1 = (Button) findViewById(R.id.button1);  //上昇ボタン
-		Button button2 = (Button) findViewById(R.id.button2);  //下降ボタン
-		Button button3 = (Button) findViewById(R.id.button3);  //音声認識ボタン
-		//加速度センサー
+		Button button1 = (Button) findViewById(R.id.button1);
+		Button button2 = (Button) findViewById(R.id.button2);
+		Button button3 = (Button) findViewById(R.id.button3);
 		values = (TextView) findViewById(R.id.value_id);
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// リスナーの登録
 		button1.setOnClickListener(this);
 		button2.setOnClickListener(this);
@@ -378,7 +379,6 @@ public class MainActivity extends Activity implements OnClickListener,
 			fillterx = (float) (fillterx * 0.9 + event.values[0] * 0.1); //加速度センサー値のフィルタ処理
             filltery = (float) (filltery * 0.9 + event.values[1] * 0.1);
             fillterz = (float) (fillterz * 0.9 + event.values[2] * 0.1);
-            
 			String str = "加速度センサー値:" + "\nX軸:"
 					+ fillterx + "\nY軸:"
 					+ filltery + "\nZ軸:"

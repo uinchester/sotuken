@@ -378,7 +378,6 @@ public class MainActivity extends Activity implements OnClickListener,
 			fillterx = (float) (fillterx * 0.9 + event.values[0] * 0.1); //加速度センサー値のフィルタ処理
             filltery = (float) (filltery * 0.9 + event.values[1] * 0.1);
             fillterz = (float) (fillterz * 0.9 + event.values[2] * 0.1);
-            
 			String str = "加速度センサー値:" + "\nX軸:"
 					+ fillterx + "\nY軸:"
 					+ filltery + "\nZ軸:"
