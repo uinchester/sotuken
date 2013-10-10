@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements OnClickListener,
 	private static final int REQUEST_CODE = 2;
 	private SensorManager manager;
 	private TextView values;
-	private float fillterx, filltery, fillterz = 0;
+	private float gyroX, gyroY, gyroZ = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,10 +51,10 @@ public class MainActivity extends Activity implements OnClickListener,
 
 		/* ボタンの実装 */
 		// ボタンの取得
-		Button button1 = (Button) findViewById(R.id.button1);  //上昇ボタン
-		Button button2 = (Button) findViewById(R.id.button2);  //下降ボタン
-		Button button3 = (Button) findViewById(R.id.button3);  //音声認識ボタン
-		//加速度センサー
+		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
+		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
+		Button button3 = (Button) findViewById(R.id.button3); // 音声認識ボタン
+		// 加速度センサー
 		values = (TextView) findViewById(R.id.value_id);
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// リスナーの登録
@@ -92,6 +92,13 @@ public class MainActivity extends Activity implements OnClickListener,
 	float previousDistance = 0;
 	// タッチした時の時間
 	long time = 0;
+
+	float temp2X = 0;
+	float temp2Y = 0;
+	float temp2Z = 0;
+	int sendX = 0;
+	int sendY = 90;
+	int sendZ = 0;
 
 	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
@@ -137,6 +144,7 @@ public class MainActivity extends Activity implements OnClickListener,
 			}
 			superZ = Integer.toString(tempZ);
 			z = tempZ;
+			sendZ = tempZ;
 			connect(superY, superX, superZ);
 			// ボタン2(下降)が押された場合
 		} else if (v.getId() == R.id.button2) {
@@ -149,6 +157,7 @@ public class MainActivity extends Activity implements OnClickListener,
 			}
 			superZ = Integer.toString(tempZ);
 			z = tempZ;
+			sendZ = tempZ;
 			connect(superY, superX, superZ);
 		}
 	}
@@ -361,7 +370,7 @@ public class MainActivity extends Activity implements OnClickListener,
 		// TODO Auto-generated method stub
 		super.onResume();
 		// Listenerの登録
-		List<Sensor> sensors = manager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+		List<Sensor> sensors = manager.getSensorList(Sensor.TYPE_GYROSCOPE);
 		if (sensors.size() > 0) {
 			Sensor s = sensors.get(0);
 			manager.registerListener(this, s, SensorManager.SENSOR_DELAY_UI);
@@ -374,16 +383,92 @@ public class MainActivity extends Activity implements OnClickListener,
 
 	public void onSensorChanged(SensorEvent event) {
 		// TODO Auto-generated method stub
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-			fillterx = (float) (fillterx * 0.9 + event.values[0] * 0.1); //加速度センサー値のフィルタ処理
-            filltery = (float) (filltery * 0.9 + event.values[1] * 0.1);
-            fillterz = (float) (fillterz * 0.9 + event.values[2] * 0.1);
-            
-			String str = "加速度センサー値:" + "\nX軸:"
-					+ fillterx + "\nY軸:"
-					+ filltery + "\nZ軸:"
-					+ fillterz;
+		if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+			gyroX = event.values[0]; // ジャイロセンサー値
+			gyroY = event.values[1];
+			gyroZ = event.values[2];
+
+			if (Math.abs(gyroX - temp2X) > 1) {
+				if (Math.abs(gyroY - temp2Y) > 1) {
+					if (Math.abs(gyroX - temp2Z) > 1) {
+
+						if (gyroX > gyroY) {// yよりxの変化量が大きい時
+							if (gyroX > gyroZ) { // xの変化量が一番大きい時
+								
+								if ((gyroX - temp2X) > 1.5) { // 座標更新
+									sendX += 10;
+									if (sendX > 50) {
+										sendX = 50;
+									}
+								} else if ((gyroX - temp2X) < -1.5) {
+									sendX -= 10;
+									if (sendX < -50) {
+										sendX = -50;
+									}
+								}
+								
+							} else {   // zの変化量が一番大きい時
+								
+								if ((gyroZ - temp2Z) > 0.51) { // 座標更新
+									sendZ += 10;
+									if (sendZ > 50) {
+										sendZ = 50;
+									}
+
+								} else if ((gyroZ - temp2Z) < -0.5) {
+									sendZ -= 10;
+									if (sendZ < -50) {
+										sendZ = -50;
+									}
+								}
+							}
+
+						} else if (gyroY > gyroZ) {  // yの変化量が一番大きい時
+							
+							if ((gyroY - temp2Y) > 1.5) { // 座標更新
+								sendY += 10;
+								if (sendY > 120) {
+									sendY = 120;
+								}
+
+							} else if ((gyroY - temp2Y) < -1.5) {
+								sendY -= 10;
+								if (sendY < 60) {
+									sendY = 60;
+								}
+
+							}
+						} else {   // zの変化量が一番大きい時
+							if ((gyroZ - temp2Z) > 0.5) { // 座標更新
+								sendZ += 10;
+								if (sendZ > 50) {
+									sendZ = 50;
+								}
+
+							} else if ((gyroZ - temp2Z) < -0.5) {
+								sendZ -= 10;
+								if (sendZ < -50) {
+									sendZ = -50;
+								}
+							}
+
+						}
+
+						temp2X = gyroX;
+						temp2Y = gyroY;
+						temp2Z = gyroZ;
+
+						String X = Integer.toString(sendZ);
+						String Y = Integer.toString(sendY);
+						String Z = Integer.toString(140);
+						connect(Y, X, Z);
+					}
+				}
+			}
+
+			String str = "加速度センサー値:" + "\nX軸:" + gyroX + "\nY軸:" + gyroY
+					+ "\nZ軸:" + gyroZ;
 			values.setText(str);
 		}
-	}   
+	}
 }
