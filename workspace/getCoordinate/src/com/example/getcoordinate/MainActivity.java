@@ -99,6 +99,8 @@ public class MainActivity extends Activity implements OnClickListener,
 	int sendX = 0;
 	int sendY = 90;
 	int sendZ = 0;
+	int movX = 0;
+	int movY = 0;
 
 	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
@@ -357,7 +359,7 @@ public class MainActivity extends Activity implements OnClickListener,
 
 	@Override
 	protected void onStop() {
-		// TODO Auto-generated method stub
+		// TODO 自動生成されたメソッド・スタブ
 		super.onStop();
 		// Listenerの登録解除
 		manager.unregisterListener(this);
@@ -365,7 +367,7 @@ public class MainActivity extends Activity implements OnClickListener,
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
+		// TODO 自動生成されたメソッド・スタブ
 		super.onResume();
 		// Listenerの登録
 		List<Sensor> sensors = manager.getSensorList(Sensor.TYPE_ACCELEROMETER);
@@ -376,64 +378,43 @@ public class MainActivity extends Activity implements OnClickListener,
 	}
 
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
+		// TODO 自動生成されたメソッド・スタブ
 	}
 
 	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
+		// TODO 自動生成されたメソッド・スタブ
+		
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 			acX = (float) (acX * 0.9 + event.values[0] * 0.1); // 加速度センサー値のフィルタ処理
 			acY = (float) (acY * 0.9 + event.values[1] * 0.1);
 			acZ = (float) (acZ * 0.9 + event.values[2] * 0.1);
-			if (Math.abs(acX - temp2X) > 1) {
-				if (Math.abs(acY - temp2Y) > 1) {
-					if (Math.abs(acX - temp2Z) > 1) {
-						if ((acX - temp2X) > 1.5) { // 座標更新
-							sendX += 10;
-							if (sendX > 50) {
-								sendX = 50;
-							}
-						} else if ((acX - temp2X) < -1.5) {
-							sendX -= 10;
-							if (sendX < -50) {
-								sendX = -50;
-							}
-						}
-						if ((acY - temp2Y) > 1.5) { // 座標更新
-							sendY += 10;
-							if (sendY > 120) {
-								sendY = 120;
-							}
 
-						} else if ((acY - temp2Y) < -1.5) {
-							sendY -= 10;
-							if (sendY < 60) {
-								sendY = 60;
-							}
-
-						}
-
-						if ((acZ - temp2Z) > 0.5) { // 座標更新
-							sendZ += 10;
-							if (sendZ > 50) {
-								sendZ = 50;
-							}
-
-						} else if ((acZ - temp2Z) < -0.5) {
-							sendZ -= 10;
-							if (sendZ < -50) {
-								sendZ = -50;
-							}
-						}
-						String X = Integer.toString(sendZ);
-						String Y = Integer.toString(sendY);
-						String Z = Integer.toString(140);
-						connect(Y, X, Z);
-					}
-				}
+			movX = (int) (acX * 10);
+			movY = (int) (acY * 10);
+			if (movX > 0 || 10 > movX) {
+				sendX = 125;
+			} else if (movX > 10 || 20 > movX) {
+				sendX = 118;
+			} else if (movX > 20 || 30 > movX) {
+				sendX = 118;
+			} else if (movX > 30 || 40 > movX) {
+				sendX = 110;
+			} else if (movX > 40 || 50 > movX) {
+				sendX = 102;
+			} else if (movX > 50 || 60 > movX) {
+				sendX = 94;
+			} else if (movX > 60 || 70 > movX) {
+				sendX = 86;
+			} else if (movX > 70 || 80 > movX) {
+				sendX = 78;
+			} else if (movX > 80 || 90 > movX) {
+				sendX = 70;
 			}
-			String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY + "\nZ軸:"
-					+ acZ;
+			String X = Integer.toString(sendZ);
+			String Y = Integer.toString(sendY);
+			String Z = Integer.toString(140);
+			connect(Y, X, Z);
+			String str = "加速度センサー値:" + "\nX軸:" + movX + "\nY軸:" + movY;
 			values.setText(str);
 		}
 	}
