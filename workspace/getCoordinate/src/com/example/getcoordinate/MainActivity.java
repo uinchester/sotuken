@@ -36,10 +36,10 @@ import android.hardware.SensorManager;
 
 public class MainActivity extends Activity implements OnClickListener,
 		SensorEventListener {
-	private static final int REQUEST_CODE = 2;
+	private static final int REQUEST_CODE = 0;
 	private SensorManager manager;
 	private TextView values;
-	private float acX, acY, acZ = 0;
+	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -54,13 +54,14 @@ public class MainActivity extends Activity implements OnClickListener,
 		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
 		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
 		Button button3 = (Button) findViewById(R.id.button3); // 音声認識ボタン
-		Button button4 = (Button) findViewById(R.id.button4);
+		Button button4 = (Button) findViewById(R.id.button4); // 加速度センサーのON/OFF切り替え用ボタン
 		// 加速度センサー
 		values = (TextView) findViewById(R.id.value_id);
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// リスナーの登録
 		button1.setOnClickListener(this);
 		button2.setOnClickListener(this);
+		button4.setOnClickListener(this);
 		button3.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				try {
@@ -69,19 +70,19 @@ public class MainActivity extends Activity implements OnClickListener,
 							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
 					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
 							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "音声認識"); // お好きな文字に変更できます
-
+					intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "音声認識"); // 音声認識時に表示する文字
+					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
 					// インテント発行
 					startActivityForResult(intent, REQUEST_CODE);
 				} catch (ActivityNotFoundException e) {
-					// このインテントに応答できるアクティビティがインストールされていない場合
+					// このインテントに応答できるアクティビティがインストールされていない場合(エミュレータでの実行時に発生する例外処理)
 					Toast.makeText(MainActivity.this,
 							"ActivityNotFoundException", Toast.LENGTH_LONG)
 							.show();
 				}
 			}
 		});
-		button4.setOnClickListener(this);
+
 	}
 
 	int i = 0;
@@ -366,8 +367,12 @@ public class MainActivity extends Activity implements OnClickListener,
 				resultsString += results.get(i);
 			}
 
-			// トーストを使って結果を表示
-			Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+			// "上"以外の入力のみ結果を表示する
+			if("上".equals(resultsString)){
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+			}else{
+				Toast.makeText(this, "もう一度お願いします。", Toast.LENGTH_LONG).show();
+			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
