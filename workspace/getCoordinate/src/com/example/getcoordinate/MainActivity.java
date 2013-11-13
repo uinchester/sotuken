@@ -3,7 +3,7 @@ package com.example.getcoordinate;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
+import javax.swing.JOptionPane;
 import com.example.getcoordinate.R.id;
 
 import android.os.Bundle;
@@ -104,7 +104,7 @@ public class MainActivity extends Activity implements OnClickListener,
 	int sendX = 0;
 	int sendY = 0;
 	int sendZ = 0;
-	int acmove = 0;
+	int acmove = 1;
 	float count = 0;
 
 	// スクリーンがタッチされたかどうかの判定
@@ -260,10 +260,13 @@ public class MainActivity extends Activity implements OnClickListener,
 			socket = new Socket(ip, port);
 			// 座標の送信
 			PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-			String action;
+			String action = null;
 			if (i == -1) {
 				action = "exit";
-			} else {
+			} else if (i == 1) {
+				action = "move1";
+			} else if (i == 0) {
+
 				action = actionX + ", " + actionY + ", " + actionZ + ", -180, "
 						+ i;
 			}
@@ -353,6 +356,7 @@ public class MainActivity extends Activity implements OnClickListener,
 		diag.show();
 	}
 
+	// 音声認識
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// 自分が投げたインテントであれば応答する
 		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
@@ -368,9 +372,12 @@ public class MainActivity extends Activity implements OnClickListener,
 			}
 
 			// "上"以外の入力のみ結果を表示する
-			if("上".equals(resultsString)){
+			if ("1".equals(resultsString)) {
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-			}else{
+				i = 1;
+				connect(null, null, null);
+				i = 0;
+			} else {
 				Toast.makeText(this, "もう一度お願いします。", Toast.LENGTH_LONG).show();
 			}
 		}
