@@ -371,11 +371,11 @@ public class MainActivity extends Activity implements OnClickListener,
 				resultsString += results.get(i);
 			}
 
-			// "上"以外の入力のみ結果を表示する
+			// "1"以外の入力のみ結果を表示する
 			if ("1".equals(resultsString)) {
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				i = 1;
-				connect(null, null, null);
+				connect("90","0" ,"160" );
 				i = 0;
 			} else {
 				Toast.makeText(this, "もう一度お願いします。", Toast.LENGTH_LONG).show();
