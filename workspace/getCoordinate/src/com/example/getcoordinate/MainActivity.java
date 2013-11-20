@@ -70,7 +70,7 @@ public class MainActivity extends Activity implements OnClickListener,
 							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
 					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
 							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "音声認識"); // 音声認識時に表示する文字
+					intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "「上」「下」「左」「右」「上」「下」のうち一つを発声してください。"); // 音声認識時に表示する文字
 					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
 					// インテント発行
 					startActivityForResult(intent, REQUEST_CODE);
@@ -106,6 +106,9 @@ public class MainActivity extends Activity implements OnClickListener,
 	int sendZ = 0;
 	int acmove = 1;
 	float count = 0;
+	int vcX = x;
+	int vcY = y;
+	int vcZ = z;
 
 	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
@@ -371,15 +374,51 @@ public class MainActivity extends Activity implements OnClickListener,
 				resultsString += results.get(i);
 			}
 
-			// "1"以外の入力のみ結果を表示する
-			if ("1".equals(resultsString)) {
+			// 以外の入力のみ結果を表示する
+
+			if ("上".equals(resultsString)) {
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-				i = 1;
-				connect("90","0" ,"160" );
-				i = 0;
+				vcZ += 10;
+				if (vcZ >= 160) {
+					vcZ = 160;
+				}
+			} else if ("下".equals(resultsString)) {
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				vcZ -= 10;
+				if (vcZ <= 60) {
+					vcZ = 60;
+				}
+			} else if ("左".equals(resultsString)) {
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				vcX += 10;
+				if (vcX >= 56) {
+					vcX = 56;
+				}
+			} else if ("右".equals(resultsString)) {
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				if (vcX <= -56) {
+					vcX = -56;
+				}
+				vcX -= 10;
+			} else if ("前".equals(resultsString)) {
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				vcY += 10;
+				if (vcY >= 140) {
+					vcY = 140;
+				}
+			} else if ("後ろ".equals(resultsString)) {
+				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				vcY -= 10;
+				if (vcY <= 40) {
+					vcY = 40;
+				}
 			} else {
-				Toast.makeText(this, "もう一度お願いします。", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」です。", Toast.LENGTH_LONG).show();
 			}
+			String voiceX = Integer.toString(vcX);
+			String voiceY = Integer.toString(vcY);
+			String voiceZ = Integer.toString(vcZ);
+			connect(voiceX, voiceY, voiceZ);
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
@@ -443,7 +482,7 @@ public class MainActivity extends Activity implements OnClickListener,
 				} else if (SacX < 8) {
 					sendX = 70;
 				} else if (SacX < 9) {
-					sendX = 60;
+					sendX = 32;
 				}
 
 				if (SacY < -5) {
