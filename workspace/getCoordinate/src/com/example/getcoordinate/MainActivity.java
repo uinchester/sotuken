@@ -34,12 +34,164 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
 public class MainActivity extends Activity implements OnClickListener,
 		SensorEventListener {
 	private static final int REQUEST_CODE = 0;
+	public static final String LOGTAG = null;
 	private SensorManager manager;
 	private TextView values;
-	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
+	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数class SpeechListener
+										// implements RecognitionListener {
+	private TextView textView1;
+
+	class SpeechListener implements RecognitionListener {
+
+		// 音声認識準備完了
+		public void onReadyForSpeech(Bundle params) {
+			Toast.makeText(getApplicationContext(), "音声認識準備完了",
+					Toast.LENGTH_SHORT);
+		}
+
+		// 音声入力開始
+
+		public void onBeginningOfSpeech() {
+			Toast.makeText(getApplicationContext(), "入力開始", Toast.LENGTH_SHORT);
+		}
+
+		// 録音データのフィードバック用
+		public void onBufferReceived(byte[] buffer) {
+
+		}
+
+		// 入力音声のdBが変化した
+		public void onRmsChanged(float rmsdB) {
+
+		}
+
+		// 音声入力終了
+		public void onEndOfSpeech() {
+			Toast.makeText(getApplicationContext(), "入力終了", Toast.LENGTH_SHORT);
+		}
+
+		// ネットワークエラー又は、音声認識エラー
+		public void onError(int error) {
+			switch (error) {
+			case SpeechRecognizer.ERROR_AUDIO:
+				// 音声データ保存失敗
+				break;
+			case SpeechRecognizer.ERROR_CLIENT:
+				// Android端末内のエラー(その他)
+				break;
+			case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+				// 権限無し
+				break;
+			case SpeechRecognizer.ERROR_NETWORK:
+				// ネットワークエラー(その他)
+				Log.e(LOGTAG, "network error");
+				break;
+			case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+				// ネットワークタイムアウトエラー
+				Log.e(LOGTAG, "network timeout");
+				break;
+			case SpeechRecognizer.ERROR_NO_MATCH:
+				// 音声認識結果無し
+				Toast.makeText(getApplicationContext(), "no match Text data",
+						Toast.LENGTH_LONG);
+				break;
+			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+				// RecognitionServiceへ要求出せず
+				break;
+			case SpeechRecognizer.ERROR_SERVER:
+				// Server側からエラー通知
+				break;
+			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+				// 音声入力無し
+				Toast.makeText(getApplicationContext(), "no input?",
+						Toast.LENGTH_LONG);
+				break;
+			default:
+			}
+		}
+
+		// イベント発生時に呼び出される
+		public void onEvent(int eventType, Bundle params) {
+			Log.v(LOGTAG, "onEvent");
+		}
+
+		// 部分的な認識結果が得られる場合に呼び出される
+		public void onPartialResults(Bundle partialResults) {
+			Log.v(LOGTAG, "onPartialResults");
+		}
+
+		// 認識結果
+		public void onResults(Bundle results) {
+			ArrayList<String> recData = results
+					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+			String getData = new String();
+			for (String s : recData) {
+				getData += s + ",";
+			}
+			if ("上".equals(getData)) {
+				Toast.makeText(getApplicationContext(), getData,
+						Toast.LENGTH_LONG).show();
+				vcZ += 10;
+				if (vcZ >= 160) {
+					vcZ = 160;
+				}
+
+			} else if ("下".equals(getData)) {
+				Toast.makeText(getApplicationContext(), getData,
+						Toast.LENGTH_LONG).show();
+				vcZ -= 10;
+				if (vcZ <= 60) {
+					vcZ = 60;
+				}
+			} else if ("左".equals(getData)) {
+				Toast.makeText(getApplicationContext(), getData,
+						Toast.LENGTH_LONG).show();
+				vcX += 10;
+				if (vcX >= 56) {
+					vcX = 56;
+				}
+			} else if ("右".equals(getData)) {
+				Toast.makeText(getApplicationContext(), getData,
+						Toast.LENGTH_LONG).show();
+				if (vcX <= -56) {
+					vcX = -56;
+				}
+				vcX -= 10;
+			} else if ("前".equals(getData)) {
+				vcY += 10;
+				if (vcY >= 140) {
+					vcY = 140;
+				}
+			} else if ("後ろ".equals(getData)) {
+				Toast.makeText(getApplicationContext(), getData,
+						Toast.LENGTH_LONG).show();
+				vcY -= 10;
+				if (vcY <= 40) {
+					vcY = 40;
+				}
+
+			} else {
+				Toast.makeText(getApplicationContext(),
+						"もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」です。",
+						Toast.LENGTH_LONG).show();
+			}
+			Toast.makeText(getApplicationContext(), getData, Toast.LENGTH_SHORT)
+					.show();
+		}
+
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -48,12 +200,32 @@ public class MainActivity extends Activity implements OnClickListener,
 		// ver3.0から追加されたStrictModeに対するエラーの対処
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build());
+		Button button3 = (Button) findViewById(R.id.button3);
+		TextView textView1 = (TextView) findViewById(R.id.text3);
 
+		button3.setOnClickListener(new View.OnClickListener() {
+
+			public void onClick(View arg0) {
+				// TODO 自動生成されたメソッド・スタブ
+				SpeechRecognizer sr = SpeechRecognizer
+						.createSpeechRecognizer(getApplicationContext());
+				sr.setRecognitionListener(new SpeechListener());
+				getApplicationContext();
+				Intent intent = new Intent(
+						RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+				intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+						RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+				intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
+						getPackageName());
+				intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+				sr.startListening(intent);
+			}
+
+		});
 		/* ボタンの実装 */
 		// ボタンの取得
 		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
 		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
-		Button button3 = (Button) findViewById(R.id.button3); // 音声認識ボタン
 		Button button4 = (Button) findViewById(R.id.button4); // 加速度センサーのON/OFF切り替え用ボタン
 		// 加速度センサー
 		values = (TextView) findViewById(R.id.value_id);
@@ -62,28 +234,6 @@ public class MainActivity extends Activity implements OnClickListener,
 		button1.setOnClickListener(this);
 		button2.setOnClickListener(this);
 		button4.setOnClickListener(this);
-		button3.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				try {
-					// インテント作成
-					Intent intent = new Intent(
-							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
-					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-							"「上」「下」「左」「右」「上」「下」のうち一つを発声してください。"); // 音声認識時に表示する文字
-					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
-					// インテント発行
-					startActivityForResult(intent, REQUEST_CODE);
-				} catch (ActivityNotFoundException e) {
-					// このインテントに応答できるアクティビティがインストールされていない場合(エミュレータでの実行時に発生する例外処理)
-					Toast.makeText(MainActivity.this,
-							"ActivityNotFoundException", Toast.LENGTH_LONG)
-							.show();
-				}
-			}
-		});
-
 	}
 
 	int i = 0;
@@ -181,6 +331,7 @@ public class MainActivity extends Activity implements OnClickListener,
 				acmove = 0;
 			}
 		}
+
 	}
 
 	@SuppressLint("FloatMath")
@@ -410,13 +561,14 @@ public class MainActivity extends Activity implements OnClickListener,
 				}
 
 			} else {
-				Toast.makeText(this, "もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」です。", Toast.LENGTH_LONG).show();
+				Toast.makeText(this,
+						"もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」です。",
+						Toast.LENGTH_LONG).show();
 			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
-
 	@Override
 	protected void onStop() {
 		// TODO 自動生成されたメソッド・スタブ
