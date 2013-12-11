@@ -70,7 +70,8 @@ public class MainActivity extends Activity implements OnClickListener,
 							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
 					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
 							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+					intent.putExtra(
+							RecognizerIntent.EXTRA_PROMPT,
 							"「上」「下」「左」「右」「前」「後ろ」「つかむ」「はなす」のうち一つを発声してください。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。"); // 音声認識時に表示する文字
 					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
 					// インテント発行
@@ -90,7 +91,7 @@ public class MainActivity extends Activity implements OnClickListener,
 	int j = 0;
 	int k = 0;
 	int x = 0;
-	int y = 0;
+	int y = 90;
 	float tempX = 0;
 	float tempY = 0;
 	int tempZ = 160;
@@ -116,6 +117,9 @@ public class MainActivity extends Activity implements OnClickListener,
 	int voiceI = 0;
 	String voiceJ = null;
 	String textJ = null;
+	String[][] voice = { { "162", "51", "75" }, { "166", "9", "75" },
+			{ "167", "-33", "75" }, { "123", "49", "75" },
+			{ "124", "7", "75" }, { "124", "-35", "75" } };
 
 	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
@@ -279,7 +283,7 @@ public class MainActivity extends Activity implements OnClickListener,
 						+ i;
 			} else {
 				action = Integer.toString(i);// 1から6までの位置へ移動する命令を送る
-			} 
+			}
 			pw.println(action);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -366,6 +370,7 @@ public class MainActivity extends Activity implements OnClickListener,
 		diag.show();
 	}
 
+	// ///////////音声認識/////////////
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// 自分が投げたインテントであれば応答する
 		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
@@ -384,112 +389,112 @@ public class MainActivity extends Activity implements OnClickListener,
 			String patternString = "[1-6]+"; // 1から6のどれかひとつ以上
 			Pattern p = Pattern.compile(patternString);
 			Matcher m = p.matcher(resultsString);
-			String[] hikaku = resultsString.split("");
+			String[] hikaku = resultsString.split("");// 音声認識により入力された文字を位置文字ずつ配列に格納
 
 			vcX = y;
 			vcY = x;
 			vcZ = z;
 			Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-			if ("上".equals(resultsString)) {
+			if ("上".equals(resultsString)) { // 「上」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcZ += 10;
 				if (vcZ >= 160) {
 					vcZ = 160;
 				}
-			} else if ("下".equals(resultsString)) {
+			} else if ("下".equals(resultsString)) { // 「下」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcZ -= 10;
 				if (vcZ <= 60) {
 					vcZ = 60;
 				}
-			} else if ("左".equals(resultsString)) {
+			} else if ("左".equals(resultsString)) { // 「左」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcY += 10;
 				if (vcY >= 56) {
 					vcY = 56;
 				}
-			} else if ("右".equals(resultsString)) {
+			} else if ("右".equals(resultsString)) { // 「右」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcY -= 10;
 				if (vcY <= -56) {
 					vcY = -56;
 				}
-			} else if ("前".equals(resultsString)) {
+			} else if ("前".equals(resultsString)) { // 「前」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcX += 10;
 				if (vcX >= 140) {
 					vcX = 140;
 				}
-			} else if ("後ろ".equals(resultsString)) {
+			} else if ("後ろ".equals(resultsString)) { // 「後ろ」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				vcX -= 10;
 				if (vcX <= 40) {
 					vcX = 40;
 				}
-			} else if ("つかむ".equals(resultsString)) {
+			} else if ("つかむ".equals(resultsString)) { // 「つかむ」と入力があった場合
 				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
 				i = 7;
 				connect(null, null, null);
 				i = 0;
 				mode = 1;
-			} else if ("話す".equals(resultsString)) {
+			} else if ("話す".equals(resultsString)) { // 「はなす」と入力があった場合
 				Toast.makeText(this, "はなす", Toast.LENGTH_LONG).show();
 				i = 8;
 				connect(null, null, null);
 				i = 0;
 				mode = 1;
-			} else if (m.find() == true) {// 1から6のどれかに移動する命令の時
+			} else if (m.find() == true) { // 1から6のどれかに移動する命令の時
 				for (j = 0; j < hikaku.length; j++) {
-					if (voiceI < 1) {
-						for (k = 1; k < 7; k++) {
-							voiceJ = Integer.toString(k);
-							if (voiceJ.equals(hikaku[j])) {// 数字の判定
-								if (voiceI == 0) { //一回目の認識
-									
-									Toast.makeText(this, "voice1",
-											Toast.LENGTH_SHORT).show();
-									textJ = hikaku[j];
-									i = Integer.parseInt(hikaku[j]);
-									connect(null, null, null);
-									i = 0;
-									voiceI++;
-
-								} else {
+					if (voiceI < 1) { // 一回目のみ処理を行い、それ以降は処理を行わない。ここの値を変えることで数字をいくつ認識するか変える事ができる。
+						for (k = 1; k < 7; k++) { // 1から6までの中からどの数字と一致するか確認する
+							voiceJ = Integer.toString(k); // 確認する数字の方をStringにする
+							if (voiceJ.equals(hikaku[j])) { // 数字が等しいかどうか判定
+								if (voiceI == 0) { // 一回目の数字の一致があった場合のみ処理を行い、それ以降はfor文を終了する
+									textJ = hikaku[j]; // 画面に表示する文字の代入
+									i = Integer.parseInt(hikaku[j]); // 移動する位置の番号をiに代入
+									connect(null, null, null); // ダミーの座標情報（実際には送信しない）を使い、connectを呼び出す
+									i = 0; // iを座標送信時の値に戻す
+									voiceI++; // 数字を一回認識した
+									x = Integer.parseInt(voice[k - 1][0]); // 現在地の統一
+									y = Integer.parseInt(voice[k - 1][1]);
+									z = Integer.parseInt(voice[k - 1][2]);
+								} else { // 二回目以降は処理を行わない
 									break;
 								}
 							}
 						}
-					} else {
+					} else { // 二回目以降は処理を行わない
 						break;
 					}
 				}
-
 				Toast.makeText(this, "現在地から" + textJ + "にボールを移動します。",
-						Toast.LENGTH_LONG).show();
-				textJ = null;
-				voiceI = 0;
-				mode = 1;
+						Toast.LENGTH_LONG).show(); // どこにボールを移動するか画面に表示
+				textJ = null; // 変数の初期化
+				voiceI = 0; // 変数の初期化
+				mode = 1; // 座標を送信しない
 			} else {
-				Toast.makeText(this,
+				Toast.makeText(
+						this,
 						"もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」「つかむ」「はなす」です。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。",
 						Toast.LENGTH_LONG).show();
 				mode = 1;
 			}
-			if (mode == 0) {
+			if (mode == 0) { // 「上」「下」「前」「後ろ」「右」「左」と入力があった場合処理を行う
 				String voiceX = Integer.toString(vcX);
 				String voiceY = Integer.toString(vcY);
 				String voiceZ = Integer.toString(vcZ);
-				connect(voiceX, voiceY, voiceZ);
+				connect(voiceX, voiceY, voiceZ); // 座標の送信
 				x = vcY;
 				y = vcX;
 				z = vcZ;
 			}
-			mode = 0;
+			mode = 0; // 座標を送信する（初期値に戻す）
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
+	// ///////////////加速度センサー//////////////////
 	@Override
 	protected void onStop() {
 		// TODO 自動生成されたメソッド・スタブ
@@ -506,8 +511,7 @@ public class MainActivity extends Activity implements OnClickListener,
 		List<Sensor> sensors = manager.getSensorList(Sensor.TYPE_ACCELEROMETER);
 		if (sensors.size() > 0) {
 			Sensor s = sensors.get(0);
-			manager.registerListener(this, s,
-					SensorManager.SENSOR_DELAY_FASTEST);
+			manager.registerListener(this, s, SensorManager.SENSOR_DELAY_GAME);
 		}
 	}
 
@@ -517,75 +521,110 @@ public class MainActivity extends Activity implements OnClickListener,
 
 	public void onSensorChanged(SensorEvent event) {
 		// TODO 自動生成されたメソッド・スタブ
-		if (acmove == 0) {
+		if (acmove == 0) { // 加速度センサーによる操作の可・不可切り替え
 			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-				acX = event.values[0]; // 加速度センサー値のフィルタ処理
+				acX = event.values[0]; // 加速度センサー値
 				acY = event.values[1];
 				acZ = event.values[2];
-				SacX = SacX + acX;
+				SacX = SacX + acX; // センサーの値を足していく
 				SacY = SacY + acY;
-				count = +1;
+				count++; // 何回センサーで値を取得したかカウントする
+				sendY = x; // 現在地情報を統一
+				sendX = y;
 				// 現在の時間
 				long nowAC = System.currentTimeMillis();
-				// タッチした時間と現在の時間を比べる(ミリ秒)
+				// 座標を送った時間と現在の時間を比べる(ミリ秒)
 				if ((nowAC - time) > 250) {
-					SacX = SacX / count;
-					SacY = SacY / count;
-					if (SacX < 1) {
-						sendX = 140;
-					} else if (SacX < 2) {
-						sendX = 118;
-					} else if (SacX < 3) {
-						sendX = 110;
-					} else if (SacX < 4) {
-						sendX = 102;
-					} else if (SacX < 5) {
-						sendX = 94;
-					} else if (SacX < 6) {
-						sendX = 86;
-					} else if (SacX < 7) {
-						sendX = 78;
-					} else if (SacX < 8) {
-						sendX = 70;
-					} else if (SacX < 9) {
-						sendX = 60;
+					SacX = (float) (SacX / count); // センサの値を取得した回数で合計を割る
+					SacY = (float) (SacY / count);
+					if (SacX < -6) { // 加速度センサーのｘ軸についての処理
+						if (z >= 140) {
+							if (sendX >= 140) {
+								sendX = 140;
+							} else {
+								sendX = sendX + 10;
+							}
+						} else {
+							if (sendX >= 160) {
+								sendX = 170;
+							} else {
+								sendX = sendX + 10;
+							}
+						}
+					} else if (SacX < -3) {
+						if (z >= 140) {
+							if (sendX >= 135) {
+								sendX = 140;
+							} else {
+								sendX = sendX + 5;
+							}
+						} else {
+							if (sendX >= 165) {
+								sendX = 170;
+							} else {
+								sendX = sendX + 5;
+							}
+						}
+
+					} else if (SacX >= -3) {
+						if (SacX <= 3) {
+							sendX = sendX;
+						} else if (SacX > 6) {
+							if (sendX <= 84) {
+								sendX = 74;
+							} else {
+								sendX = sendX - 10;
+							}
+						} else if (SacX > 3) {
+							if (sendX <= 79) {
+								sendX = 74;
+							} else {
+								sendX = sendX - 5;
+							}
+						}
 					}
 
-					if (SacY < -5) {
-						sendY = 56;
-					} else if (SacY < -4) {
-						sendY = 47;
+					if (SacY < -6) { // 加速度センサーのy軸の処理
+						if (sendY >= 46) {
+							sendY = 56;
+						} else {
+							sendY = sendY + 10;
+						}
+
 					} else if (SacY < -3) {
-						sendY = 38;
-					} else if (SacY < -2) {
-						sendY = 29;
-					} else if (SacY < -1) {
-						sendY = 20;
-					} else if (SacY < 0) {
-						sendY = 11;
-					} else if (SacY < 1) {
-						sendY = 2;
-					} else if (SacY < 2) {
-						sendY = -10;
-					} else if (SacY < 3) {
-						sendY = -22;
-					} else if (SacY < 4) {
-						sendY = -34;
-					} else if (SacY < 5) {
-						sendY = -56;
+						if (sendY >= 46) {
+							sendY = 56;
+						} else {
+							sendY = sendY + 5;
+						}
+					} else if (SacY >= -3) {
+						if (SacY <= 3) {
+							sendY = sendY;
+						} else if (SacY > 6) {
+							if (sendY <= -46) {
+								sendY = -56;
+							} else {
+								sendY = sendY - 10;
+							}
+						} else if (SacY > 3) {
+							if (sendY <= -46) {
+								sendY = -56;
+							} else {
+								sendY = sendY - 5;
+							}
+						}
 					}
-					x = sendY;
+					x = sendY; // 現在地情報を統一
 					y = sendX;
-					z = 160;
 					String X = Integer.toString(sendX);
 					String Y = Integer.toString(sendY);
-					String Z = Integer.toString(160);
-					// 加速度センサーによる操作の可・不可切り替え
-					connect(X, Y, Z);
-					String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY;
-					values.setText(str);
+					String Z = Integer.toString(z);
 
-					SacX = 0;
+					connect(X, Y, Z); // 座標の送信
+					String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY;
+					values.setText(str); // 画面に表示
+
+					SacX = 0; // 初期化
 					SacY = 0;
 					count = 0;
 					time = nowAC;

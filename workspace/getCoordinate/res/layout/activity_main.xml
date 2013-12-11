@@ -65,6 +65,6 @@
          android:layout_alignRight="@+id/button2"
          android:layout_below="@+id/value_id"
          android:layout_marginRight="16dp"
-         android:text="切り替え" />
+         android:text="加速度センサー" />
 
 </RelativeLayout>
