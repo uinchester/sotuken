@@ -5,6 +5,8 @@
     <string name="menu1">座標変換</string>
     <string name="menu2">IPアドレス</string>
     <string name="menu3">終了</string>
+    <string name="menu4">加速度センサー</string>
     <string name="title_activity_main">座標送信</string>
-
+    <string name="title_activity_sub">加速度センサー</string>
+    <string name="menu5">タッチ操作</string>
 </resources>

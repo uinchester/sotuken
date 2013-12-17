@@ -1,24 +1,32 @@
 package com.example.getcoordinate;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import com.example.getcoordinate.R.id;
-import android.os.Bundle;
-import android.os.StrictMode;
-import android.preference.PreferenceManager;
-import android.app.Activity;
+
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,33 +37,32 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class SubActivity extends MainActivity implements SensorEventListener {
 	private static final int REQUEST_CODE = 0;
+	private SensorManager manager;
+	private TextView values;
 	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_sub);
 		// ver3.0から追加されたStrictModeに対するエラーの対処
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build());
 
 		/* ボタンの実装 */
 		// ボタンの取得
-		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
-		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
-		Button button3 = (Button) findViewById(R.id.button3); // 音声認識ボタン
-
+		Button button5 = (Button) findViewById(R.id.button5); // 音声認識ボタン
+		Button button6 = (Button) findViewById(R.id.button6); // 加速度センサーのON/OFF切り替え用ボタン
+		// 加速度センサー
+		values = (TextView) findViewById(R.id.value_id);
+		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// リスナーの登録
-		button1.setOnClickListener(this);
-		button2.setOnClickListener(this);
-		button3.setOnClickListener(new View.OnClickListener() {
+
+		button6.setOnClickListener(this);
+		button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				try {
 					// インテント作成
@@ -71,7 +78,7 @@ public class MainActivity extends Activity implements OnClickListener {
 					startActivityForResult(intent, REQUEST_CODE);
 				} catch (ActivityNotFoundException e) {
 					// このインテントに応答できるアクティビティがインストールされていない場合(エミュレータでの実行時に発生する例外処理)
-					Toast.makeText(MainActivity.this,
+					Toast.makeText(SubActivity.this,
 							"ActivityNotFoundException", Toast.LENGTH_LONG)
 							.show();
 				}
@@ -114,106 +121,26 @@ public class MainActivity extends Activity implements OnClickListener {
 			{ "167", "-33", "75" }, { "123", "49", "75" },
 			{ "124", "7", "75" }, { "124", "-35", "75" } };
 
-	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
-		move(event);
-		int mx = y, mz = 0;
-		String[] strs = trans(mx, mz);
-		String actionX = strs[0];
-		String actionY = strs[1];
-		String actionZ = strs[2];
-		String actionXY = strs[3];
-		// 座標の表示
-		TextView coordinate = (TextView) findViewById(id.text);
-		TextView coordinate2 = (TextView) findViewById(id.text2);
-		coordinate.setText(actionXY);
-		coordinate2.setText(actionZ);
-		// 現在の時間
-		long now = System.currentTimeMillis();
-		// タッチした時間と現在の時間を比べる(ミリ秒)
-		if ((now - time) > 400) {
-			connect(actionX, actionY, actionZ);
-			time = now;
-		}
-		return super.onTouchEvent(event);
+		return false;
+
 	}
 
 	// ボタンが押された時のアクション
 	public void onClick(View v) {
-		// X,Y,Zをconnect用に変換
-		String superX = Integer.toString(x);
-		String superY = Integer.toString(y);
-		String superZ = Integer.toString(z);
-		// ボタン1(上昇)が押された場合
-		if (v.getId() == R.id.button1) {
-			Toast toast = Toast.makeText(this, "上昇！", Toast.LENGTH_SHORT);
-			toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
-			toast.show();
-
-			tempZ += 10;
-			if (tempZ > 160) {
-				tempZ = 160;
-			}
-			superZ = Integer.toString(tempZ);
-			z = tempZ;
-			connect(superY, superX, superZ);
-			// ボタン2(下降)が押された場合
-		} else if (v.getId() == R.id.button2) {
-			Toast toast = Toast.makeText(this, "下降！", Toast.LENGTH_SHORT);
-			toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
-			toast.show();
-			tempZ -= 10;
-			if (tempZ < 60) {
-				tempZ = 60;
-			}
-			superZ = Integer.toString(tempZ);
-			z = tempZ;
-			connect(superY, superX, superZ);
-		} 
-	}
-
-	@SuppressLint("FloatMath")
-	private void move(MotionEvent event) {
-		// シングルタッチ
-		// if(event.getPointerCount()==1) {
-		// 座標の取得
-		tempY = (int) ((event.getY() - 400));
-		tempX = (int) ((event.getX() - 640));
-		/* 8画素を，1座標とする */
-		y = (int) ((tempY / 8) * (-1));
-		x = (int) ((tempX / 8) * (-1));
-
-		// yを正の値にする
-		if (z != 140) {
-			if (x > 50) {
-				x = 50;
-			} else if (x < -50) {
-				x = -50;
-			}
-			if (y < 0) {
-				y = 0;
+		if (v.getId() == R.id.button6) {
+			if (acmove == 0) {
+				Toast toast = Toast.makeText(this, "無効", Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
+				toast.show();
+				acmove = 1;
+			} else {
+				Toast toast = Toast.makeText(this, "有効", Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
+				toast.show();
+				acmove = 0;
 			}
 		}
-		y += 90;
-		// }
-		// マルチタッチ
-		/*
-		 * else { int pointer1=event.getPointerId(0); int
-		 * pointer2=event.getPointerId(1);
-		 * 
-		 * int pointer_index_1 = event.findPointerIndex( pointer1 ); int
-		 * pointer_index_2 = event.findPointerIndex( pointer2 );
-		 * 
-		 * float tempX = event.getX(pointer_index_2) -
-		 * event.getX(pointer_index_1); float tempY =
-		 * event.getY(pointer_index_2) - event.getY(pointer_index_1); //
-		 * ボタン間の距離を求める float distance = (float) Math.sqrt(tempX * tempX + tempY
-		 * * tempY); switch ( event.getAction() ) { case
-		 * MotionEvent.ACTION_MOVE: //距離を狭めた場合 if ( (tempZ > 95 )&&(tempZ < 165)
-		 * ) { if( previousDistance > distance ) { tempZ += 5; } else if(
-		 * previousDistance < distance ) { tempZ -= 5; } // zを140に固定する // tempZ
-		 * = 140; z = tempZ; } } previousDistance = distance; }
-		 */
 	}
 
 	String[] trans(int mx, int mz) {
@@ -286,7 +213,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.activity_main, menu);
+		getMenuInflater().inflate(R.menu.activity_sub, menu);
 		return true;
 	}
 
@@ -302,16 +229,17 @@ public class MainActivity extends Activity implements OnClickListener {
 		case R.id.menu2:
 			getIP(input1);
 			break;
-			
+
 		case R.id.menu3:
 			i = -1;
 			connect(null, null, null);
 			break;
 		case R.id.menu4:
 			Intent intent = new Intent();
-            intent.setClassName("com.example.getcoordinate", "com.example.getcoordinate.SubActivity");
-            startActivity(intent);
-		break;
+			intent.setClassName("com.example.getcoordinate",
+					"com.example.getcoordinate.MainActivity");
+			startActivity(intent);
+			break;
 		default:
 			break;
 		}
@@ -499,4 +427,113 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
+
+	// ///////////////加速度センサー//////////////////
+	@Override
+	protected void onStop() {
+		// TODO 自動生成されたメソッド・スタブ
+		super.onStop();
+		// Listenerの登録解除
+		manager.unregisterListener(this);
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO 自動生成されたメソッド・スタブ
+		super.onResume();
+		// Listenerの登録
+		List<Sensor> sensors = manager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+		if (sensors.size() > 0) {
+			Sensor s = sensors.get(0);
+			manager.registerListener(this, s, SensorManager.SENSOR_DELAY_GAME);
+		}
+	}
+
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO 自動生成されたメソッド・スタブ
+	}
+
+	public void onSensorChanged(SensorEvent event) {
+		// TODO 自動生成されたメソッド・スタブ
+		if (acmove == 0) { // 加速度センサーによる操作の可・不可切り替え
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+				acX = event.values[0]; // 加速度センサー値
+				acY = event.values[1];
+				acZ = event.values[2];
+				SacX = SacX + acX; // センサーの値を足していく
+				SacY = SacY + acY;
+				count++; // 何回センサーで値を取得したかカウントする
+				sendY = x; // 現在地情報を統一
+				sendX = y;
+				// 現在の時間
+				long nowAC = System.currentTimeMillis();
+				// 座標を送った時間と現在の時間を比べる(ミリ秒)
+				if ((nowAC - time) > 250) {
+					SacX = (float) (SacX / count); // センサの値を取得した回数で合計を割る
+					SacY = (float) (SacY / count);
+					if (SacX < -3) {
+						if (z >= 140) {
+							if (sendX >= 135) {
+								sendX = 140;
+							} else {
+								sendX = sendX + 5;
+							}
+						} else {
+							if (sendX >= 165) {
+								sendX = 170;
+							} else {
+								sendX = sendX + 5;
+							}
+						}
+
+					} else if (SacX >= -3) {
+						if (SacX <= 3) {
+							sendX = sendX;
+						}
+						if (SacX > 3) {
+							if (sendX <= 79) {
+								sendX = 74;
+							} else {
+								sendX = sendX - 5;
+							}
+						}
+					}
+
+					if (SacY < -3) {
+						if (sendY >= 46) {
+							sendY = 56;
+						} else {
+							sendY = sendY + 5;
+						}
+					} else if (SacY >= -3) {
+						if (SacY <= 3) {
+							sendY = sendY;
+						}
+						if (SacY > 3) {
+							if (sendY <= -46) {
+								sendY = -56;
+							} else {
+								sendY = sendY - 5;
+							}
+						}
+					}
+					x = sendY; // 現在地情報を統一
+					y = sendX;
+					String X = Integer.toString(sendX);
+					String Y = Integer.toString(sendY);
+					String Z = Integer.toString(z);
+
+					connect(X, Y, Z); // 座標の送信
+					String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY;
+					values.setText(str); // 画面に表示
+
+					SacX = 0; // 初期化
+					SacY = 0;
+					count = 0;
+					time = nowAC;
+				}
+			}
+		}
+	}
+
 }

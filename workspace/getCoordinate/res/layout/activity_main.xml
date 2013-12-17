@@ -23,13 +23,7 @@
         android:layout_marginTop="24dp"
         android:textSize="50sp" />
 
-    <TextView
-        android:id="@+id/value_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="62dp"
-        android:textSize="50sp" />
-
+   
     <Button
         android:id="@+id/button1"
         android:layout_width="wrap_content"
@@ -58,13 +52,6 @@
         android:layout_marginLeft="48dp"
         android:text="音声認識を開始" />
 
-     <Button
-         android:id="@+id/button4"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_alignRight="@+id/button2"
-         android:layout_below="@+id/value_id"
-         android:layout_marginRight="16dp"
-         android:text="加速度センサー" />
+ 
 
 </RelativeLayout>

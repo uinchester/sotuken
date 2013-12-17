@@ -12,7 +12,7 @@
         android:orderInCategory="100"
         android:showAsAction="never" />
     <item android:id="@+id/menu4"
-        android:title="@string/menu4"
+        android:title="@string/menu5"
         android:orderInCategory="100"
         android:showAsAction="never" />
 </menu>
