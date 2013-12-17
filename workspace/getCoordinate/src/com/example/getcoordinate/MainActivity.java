@@ -278,6 +278,9 @@ public class MainActivity extends Activity implements OnClickListener,
 				action = "move1";// つかむ
 			} else if (i == 8) {
 				action = "move2";// はなす
+			}else if (i == 9) {//加速度測定
+				action = actionX + ", " + actionY + ", " + actionZ + ", -180, "
+						+ i;
 			} else if (i == 0) {
 				action = actionX + ", " + actionY + ", " + actionZ + ", -180, "
 						+ i;
@@ -518,7 +521,11 @@ public class MainActivity extends Activity implements OnClickListener,
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		// TODO 自動生成されたメソッド・スタブ
 	}
-
+	long time1 = 0;
+	int count2=0;
+	float sumX =0;
+	float sumY =0;
+	int ACM=0;
 	public void onSensorChanged(SensorEvent event) {
 		// TODO 自動生成されたメソッド・スタブ
 		if (acmove == 0) { // 加速度センサーによる操作の可・不可切り替え
@@ -528,11 +535,32 @@ public class MainActivity extends Activity implements OnClickListener,
 				acZ = event.values[2];
 				SacX = SacX + acX; // センサーの値を足していく
 				SacY = SacY + acY;
+				sumX=sumX+acX;
+				sumY=sumY+acY;
 				count++; // 何回センサーで値を取得したかカウントする
+				count2++;
 				sendY = x; // 現在地情報を統一
 				sendX = y;
 				// 現在の時間
 				long nowAC = System.currentTimeMillis();
+				long nowAC2 = System.currentTimeMillis();
+				if (nowAC2 - time1>1000)
+				{
+					if(ACM==0){
+					sumX=(float)(sumX/count2);
+					sumY=(float)(sumY/count2);
+					String sumX1 = Float.toString(sumX);
+					String sumY1 = Float.toString(sumY);
+					i=9;
+					connect(sumX1,sumY1,sumX1);
+					i=0;
+					count2=0;
+					sumX=0;
+					sumY=0;
+					ACM=0;
+					time1 = nowAC2;
+					}
+				}
 				// 座標を送った時間と現在の時間を比べる(ミリ秒)
 				if ((nowAC - time) > 250) {
 					SacX = (float) (SacX / count); // センサの値を取得した回数で合計を割る
@@ -620,7 +648,7 @@ public class MainActivity extends Activity implements OnClickListener,
 					String Y = Integer.toString(sendY);
 					String Z = Integer.toString(z);
 
-					connect(X, Y, Z); // 座標の送信
+					//connect(X, Y, Z); // 座標の送信
 					String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY;
 					values.setText(str); // 画面に表示
 
