@@ -2,16 +2,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/hani7"
+    android:background="@drawable/hani8"
     tools:context=".SubActivity" >
 
-     <TextView
+    <TextView
         android:id="@+id/value_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="62dp"
         android:textSize="50sp" />
-    
+
     <Button
         android:id="@+id/button5"
         android:layout_width="wrap_content"
@@ -22,13 +22,47 @@
         android:layout_marginLeft="48dp"
         android:text="音声認識を開始" />
 
-     <Button
-         android:id="@+id/button6"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_alignParentRight="true"
-         android:layout_alignTop="@+id/button5"
-         android:layout_marginRight="41dp"
-         android:text="加速度センサー" />
+    <Button
+        android:id="@+id/button6"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/button5"
+        android:layout_marginRight="41dp"
+        android:text="入/切" />
+
+    <Button
+        android:id="@+id/button7"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@+id/button9"
+        android:layout_centerHorizontal="true"
+        android:text="しきい値変更：前" />
+
+    <Button
+        android:id="@+id/button10"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_below="@+id/button8"
+        android:layout_toRightOf="@+id/button8"
+        android:text="しきい値変更：後" />
+
+    <Button
+        android:id="@+id/button8"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="32dp"
+        android:layout_toLeftOf="@+id/button7"
+        android:text="しきい値変更：右" />
+
+    <Button
+        android:id="@+id/button9"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@+id/button10"
+        android:layout_marginLeft="32dp"
+        android:layout_toRightOf="@+id/button10"
+        android:text="しきい値変更：左" />
 
 </RelativeLayout>

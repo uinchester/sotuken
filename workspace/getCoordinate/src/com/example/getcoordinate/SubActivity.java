@@ -4,17 +4,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.example.getcoordinate.R.id;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,17 +26,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
+import com.example.getcoordinate.BallSurFaceView;
+import com.example.getcoordinate.MainActivity;
 
 public class SubActivity extends MainActivity implements SensorEventListener {
 	private static final int REQUEST_CODE = 0;
 	private SensorManager manager;
 	private TextView values;
 	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
+
+	// private BallSurFaceView mSurFaceView;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,17 +50,26 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 		// ver3.0から追加されたStrictModeに対するエラーの対処
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build());
-
+		// mSurFaceView = new BallSurFaceView(this);
+		// setContentView(mSurFaceView);
 		/* ボタンの実装 */
 		// ボタンの取得
 		Button button5 = (Button) findViewById(R.id.button5); // 音声認識ボタン
 		Button button6 = (Button) findViewById(R.id.button6); // 加速度センサーのON/OFF切り替え用ボタン
+		Button button7 = (Button) findViewById(R.id.button7);
+		Button button8 = (Button) findViewById(R.id.button8);
+		Button button9 = (Button) findViewById(R.id.button9);
+		Button button10 = (Button) findViewById(R.id.button10);
 		// 加速度センサー
 		values = (TextView) findViewById(R.id.value_id);
-		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		// リスナーの登録
 
 		button6.setOnClickListener(this);
+		button7.setOnClickListener(this);
+		button8.setOnClickListener(this);
+		button9.setOnClickListener(this);
+		button10.setOnClickListener(this);
 		button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				try {
@@ -87,39 +95,19 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 
 	}
 
-	int i = 0;
-	int j = 0;
-	int k = 0;
-	int x = 0;
-	int y = 90;
-	float tempX = 0;
-	float tempY = 0;
-	int tempZ = 160;
-	int z = 160;
 	float previousDistance = 0;
 	// タッチした時の時間
 	long time = 0;
-
-	float temp2X = 0;
-	float temp2Y = 0;
-	float temp2Z = 0;
 	float SacX = 0;
 	float SacY = 0;
-	int sendX = 0;
-	int sendY = 0;
-	int sendZ = 0;
+	int sendX = y;
+	int sendY = x;
+	int sendZ = z;
 	int acmove = 1;
-	float count = 0;
-	int vcX = 0;
-	int vcY = 0;
-	int vcZ = 0;
-	int mode = 0;
-	int voiceI = 0;
-	String voiceJ = null;
-	String textJ = null;
-	String[][] voice = { { "162", "51", "75" }, { "166", "9", "75" },
-			{ "167", "-33", "75" }, { "123", "49", "75" },
-			{ "124", "7", "75" }, { "124", "-35", "75" } };
+	float acflont = -3;
+	float acback = 3;
+	float acleft = -3;
+	float acright = 3;
 
 	public boolean onTouchEvent(MotionEvent event) {
 		return false;
@@ -140,6 +128,30 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 				toast.show();
 				acmove = 0;
 			}
+
+		} else if (v.getId() == R.id.button7) {
+			acflont = acX;
+			String flont = Float.toString(acflont);
+			Toast.makeText(this, "前のしきい値を" + flont + "に変更しました。",
+					Toast.LENGTH_SHORT).show();
+
+		} else if (v.getId() == R.id.button8) {
+			acright = acY;
+			String right = Float.toString(acright);
+			Toast.makeText(this, "前のしきい値を" + right + "に変更しました。",
+					Toast.LENGTH_SHORT).show();
+		} else if (v.getId() == R.id.button9) {
+			acleft = acX;
+			String left = Float.toString(acleft);
+			Toast.makeText(this, "前のしきい値を" + left + "に変更しました。",
+					Toast.LENGTH_SHORT).show();
+
+		} else if (v.getId() == R.id.button10) {
+			acback = acY;
+			String back = Float.toString(acback);
+			Toast.makeText(this, "前のしきい値を" + back + "に変更しました。",
+					Toast.LENGTH_SHORT).show();
+
 		}
 	}
 
@@ -229,17 +241,20 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 		case R.id.menu2:
 			getIP(input1);
 			break;
-
-		case R.id.menu3:
-			i = -1;
-			connect(null, null, null);
-			break;
 		case R.id.menu4:
 			Intent intent = new Intent();
 			intent.setClassName("com.example.getcoordinate",
 					"com.example.getcoordinate.MainActivity");
 			startActivity(intent);
 			break;
+		case R.id.menu6:
+			getAC();
+			break;
+		case R.id.menu3:
+			i = -1;
+			connect(null, null, null);
+			break;
+
 		default:
 			break;
 		}
@@ -288,155 +303,32 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 		diag.show();
 	}
 
-	// ///////////音声認識/////////////
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// 自分が投げたインテントであれば応答する
-		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-			String resultsString = "";
+	void getAC() {
+		AlertDialog.Builder diag2 = new AlertDialog.Builder(this);
+		diag2.setTitle("しきい値の初期化");
+		diag2.setPositiveButton("キャンセル", new DialogInterface.OnClickListener() {
 
-			// 結果文字列リスト
-			ArrayList<String> results = data
-					.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+			public void onClick(DialogInterface dialog, int which) {
 
-			for (int i = 0; i < results.size(); i++) {
-				// ここでは、文字列が複数あった場合に結合しています
-				resultsString += results.get(i);
 			}
+		});
+		diag2.setNegativeButton("デフォルトに戻す",
+				new DialogInterface.OnClickListener() {
 
-			// 以外の入力のみ結果を表示する
-			String patternString = "[1-6]+"; // 1から6のどれかひとつ以上
-			String patternString2 = "[前後右左上下]+";
-			Pattern p = Pattern.compile(patternString);
-			Pattern p2 = Pattern.compile(patternString2);
-			Matcher m = p.matcher(resultsString);
-			Matcher m2 = p2.matcher(resultsString);
-			String[] hikaku = resultsString.split("");// 音声認識により入力された文字を位置文字ずつ配列に格納
-
-			vcX = y;
-			vcY = x;
-			vcZ = z;
-			Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-			if (m2.find() == true) {
-				for (j = 0; j < hikaku.length; j++) {
-					if ("上".equals(hikaku[j])) { // 「上」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						for (j = 0; j < hikaku.length; j++) {
-							vcZ += 10;
-							if (vcZ >= 160) {
-								vcZ = 160;
-							}
-						}
-
-					} else if ("下".equals(hikaku[j])) { // 「下」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						vcZ -= 10;
-						if (vcZ <= 60) {
-							vcZ = 60;
-						}
-					} else if ("左".equals(hikaku[j])) { // 「左」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						vcY += 10;
-						if (vcY >= 56) {
-							vcY = 56;
-						}
-					} else if ("右".equals(hikaku[j])) { // 「右」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						vcY -= 10;
-						if (vcY <= -56) {
-							vcY = -56;
-						}
-					} else if ("前".equals(hikaku[j])) { // 「前」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						vcX += 10;
-						if (vcX >= 140) {
-							vcX = 140;
-						}
-					} else if ("後".equals(hikaku[j])) { // 「後ろ」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
-						vcX -= 10;
-						if (vcX <= 40) {
-							vcX = 40;
-						}
+					public void onClick(DialogInterface dialog, int which) {
+						acflont = -3;
+						acback = 3;
+						acleft = -3;
+						acright = 3;
+						Toast.makeText(SubActivity.this, "しきい値をデフォルトに戻しました。",
+								Toast.LENGTH_SHORT).show();
 					}
-				}
-			} else if ("つかむ".equals(resultsString)) { // 「つかむ」と入力があった場合
-				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-				i = 7;
-				connect(null, null, null);
-				i = 0;
-				mode = 1;
-			} else if ("話す".equals(resultsString)) { // 「はなす」と入力があった場合
-				Toast.makeText(this, "はなす", Toast.LENGTH_LONG).show();
-				i = 8;
-				connect(null, null, null);
-				i = 0;
-				mode = 1;
-			} else if (m.find() == true) { // 1から6のどれかに移動する命令の時
-				for (j = 0; j < hikaku.length; j++) {
-					if (voiceI < 1) { // 一回目のみ処理を行い、それ以降は処理を行わない。ここの値を変えることで数字をいくつ認識するか変える事ができる。
-						for (k = 1; k < 7; k++) { // 1から6までの中からどの数字と一致するか確認する
-							voiceJ = Integer.toString(k); // 確認する数字の方をStringにする
-							if (voiceJ.equals(hikaku[j])) { // 数字が等しいかどうか判定
-								if (voiceI == 0) { // 一回目の数字の一致があった場合のみ処理を行い、それ以降はfor文を終了する
-									textJ = hikaku[j]; // 画面に表示する文字の代入
-									i = Integer.parseInt(hikaku[j]); // 移動する位置の番号をiに代入
-									connect(null, null, null); // ダミーの座標情報（実際には送信しない）を使い、connectを呼び出す
-									i = 0; // iを座標送信時の値に戻す
-									voiceI++; // 数字を一回認識した
-									x = Integer.parseInt(voice[k - 1][0]); // 現在地の統一
-									y = Integer.parseInt(voice[k - 1][1]);
-									z = Integer.parseInt(voice[k - 1][2]);
-								} else { // 二回目以降は処理を行わない
-									break;
-								}
-							}
-						}
-					} else { // 二回目以降は処理を行わない
-						break;
-					}
-				}
-				Toast.makeText(this, "現在地から" + textJ + "にボールを移動します。",
-						Toast.LENGTH_LONG).show(); // どこにボールを移動するか画面に表示
-				textJ = null; // 変数の初期化
-				voiceI = 0; // 変数の初期化
-				mode = 1; // 座標を送信しない
-			} else {
-				Toast.makeText(
-						this,
-						"もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」「つかむ」「はなす」です。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。",
-						Toast.LENGTH_LONG).show();
-				mode = 1;
-			}
-			if (mode == 0) { // 「上」「下」「前」「後ろ」「右」「左」と入力があった場合処理を行う
-				String voiceX = Integer.toString(vcX);
-				String voiceY = Integer.toString(vcY);
-				String voiceZ = Integer.toString(vcZ);
-				connect(voiceX, voiceY, voiceZ); // 座標の送信
-				x = vcY;
-				y = vcX;
-				z = vcZ;
-			}
-			mode = 0; // 座標を送信する（初期値に戻す）
-		}
 
-		super.onActivityResult(requestCode, resultCode, data);
+				});
+		diag2.show();
 	}
 
 	// ///////////////加速度センサー//////////////////
-	@Override
-	protected void onStop() {
-		// TODO 自動生成されたメソッド・スタブ
-		super.onStop();
-		// Listenerの登録解除
-		manager.unregisterListener(this);
-	}
-
 	@Override
 	protected void onResume() {
 		// TODO 自動生成されたメソッド・スタブ
@@ -447,6 +339,14 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 			Sensor s = sensors.get(0);
 			manager.registerListener(this, s, SensorManager.SENSOR_DELAY_GAME);
 		}
+	}
+
+	@Override
+	protected void onStop() {
+		// TODO 自動生成されたメソッド・スタブ
+		super.onStop();
+		// Listenerの登録解除
+		manager.unregisterListener(this);
 	}
 
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -460,6 +360,7 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 				acX = event.values[0]; // 加速度センサー値
 				acY = event.values[1];
 				acZ = event.values[2];
+				// mSurFaceView.drawBall((int) acX, (int)acY);
 				SacX = SacX + acX; // センサーの値を足していく
 				SacY = SacY + acY;
 				count++; // 何回センサーで値を取得したかカウントする
@@ -471,7 +372,7 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 				if ((nowAC - time) > 250) {
 					SacX = (float) (SacX / count); // センサの値を取得した回数で合計を割る
 					SacY = (float) (SacY / count);
-					if (SacX < -3) {
+					if (SacX < acflont) {
 						if (z >= 140) {
 							if (sendX >= 135) {
 								sendX = 140;
@@ -486,11 +387,11 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 							}
 						}
 
-					} else if (SacX >= -3) {
-						if (SacX <= 3) {
+					} else if (SacX >= acflont) {
+						if (SacX <= acback) {
 							sendX = sendX;
 						}
-						if (SacX > 3) {
+						if (SacX > acback) {
 							if (sendX <= 79) {
 								sendX = 74;
 							} else {
@@ -499,17 +400,17 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 						}
 					}
 
-					if (SacY < -3) {
+					if (SacY < acleft) {
 						if (sendY >= 46) {
 							sendY = 56;
 						} else {
 							sendY = sendY + 5;
 						}
-					} else if (SacY >= -3) {
-						if (SacY <= 3) {
+					} else if (SacY >= acleft) {
+						if (SacY <= acright) {
 							sendY = sendY;
 						}
-						if (SacY > 3) {
+						if (SacY > acright) {
 							if (sendY <= -46) {
 								sendY = -56;
 							} else {

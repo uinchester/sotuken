@@ -29,15 +29,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import com.example.getcoordinate.BallSurFaceView;
 
 public class MainActivity extends Activity implements OnClickListener {
 	private static final int REQUEST_CODE = 0;
-	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -302,16 +297,15 @@ public class MainActivity extends Activity implements OnClickListener {
 		case R.id.menu2:
 			getIP(input1);
 			break;
-			
-		case R.id.menu3:
-			i = -1;
-			connect(null, null, null);
-			break;
 		case R.id.menu4:
 			Intent intent = new Intent();
             intent.setClassName("com.example.getcoordinate", "com.example.getcoordinate.SubActivity");
             startActivity(intent);
 		break;
+		case R.id.menu3:
+			i = -1;
+			connect(null, null, null);
+			break;
 		default:
 			break;
 		}
@@ -391,7 +385,7 @@ public class MainActivity extends Activity implements OnClickListener {
 			if (m2.find() == true) {
 				for (j = 0; j < hikaku.length; j++) {
 					if ("上".equals(hikaku[j])) { // 「上」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
+						Toast.makeText(this, "上に移動します。", Toast.LENGTH_LONG)
 								.show();
 						for (j = 0; j < hikaku.length; j++) {
 							vcZ += 10;
@@ -401,36 +395,36 @@ public class MainActivity extends Activity implements OnClickListener {
 						}
 
 					} else if ("下".equals(hikaku[j])) { // 「下」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
+						Toast.makeText(this, "下に移動します。", Toast.LENGTH_LONG)
+						.show();
 						vcZ -= 10;
 						if (vcZ <= 60) {
 							vcZ = 60;
 						}
 					} else if ("左".equals(hikaku[j])) { // 「左」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
+						Toast.makeText(this, "左に移動します。", Toast.LENGTH_LONG)
+						.show();
 						vcY += 10;
 						if (vcY >= 56) {
 							vcY = 56;
 						}
 					} else if ("右".equals(hikaku[j])) { // 「右」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
+						Toast.makeText(this, "右に移動します。", Toast.LENGTH_LONG)
+						.show();
 						vcY -= 10;
 						if (vcY <= -56) {
 							vcY = -56;
 						}
 					} else if ("前".equals(hikaku[j])) { // 「前」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
+						Toast.makeText(this, "前に移動します。", Toast.LENGTH_LONG)
+						.show();
 						vcX += 10;
 						if (vcX >= 140) {
 							vcX = 140;
 						}
 					} else if ("後".equals(hikaku[j])) { // 「後ろ」と入力があった場合
-						Toast.makeText(this, resultsString, Toast.LENGTH_LONG)
-								.show();
+						Toast.makeText(this, "後に移動します。", Toast.LENGTH_LONG)
+						.show();
 						vcX -= 10;
 						if (vcX <= 40) {
 							vcX = 40;
@@ -438,18 +432,18 @@ public class MainActivity extends Activity implements OnClickListener {
 					}
 				}
 			} else if ("つかむ".equals(resultsString)) { // 「つかむ」と入力があった場合
-				Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "アームを閉じます。", Toast.LENGTH_LONG).show();
 				i = 7;
 				connect(null, null, null);
 				i = 0;
 				mode = 1;
 			} else if ("話す".equals(resultsString)) { // 「はなす」と入力があった場合
-				Toast.makeText(this, "はなす", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "アームを開きます。", Toast.LENGTH_LONG).show();
 				i = 8;
 				connect(null, null, null);
 				i = 0;
 				mode = 1;
-			} else if (m.find() == true) { // 1から6のどれかに移動する命令の時
+			}else if (m.find() == true) { // 1から6のどれかに移動する命令の時
 				for (j = 0; j < hikaku.length; j++) {
 					if (voiceI < 1) { // 一回目のみ処理を行い、それ以降は処理を行わない。ここの値を変えることで数字をいくつ認識するか変える事ができる。
 						for (k = 1; k < 7; k++) { // 1から6までの中からどの数字と一致するか確認する
