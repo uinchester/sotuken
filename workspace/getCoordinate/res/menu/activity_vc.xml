@@ -11,27 +11,21 @@
         android:showAsAction="never"
         android:title="@string/menu2"/>
     <item
+        android:id="@+id/menu5"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu5">
+    </item>
+    <item
         android:id="@+id/menu4"
         android:orderInCategory="100"
         android:showAsAction="never"
-        android:title="@string/menu5"/>
-      <item
-        android:id="@+id/menu7"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/menu7">
-    </item>
-    <item
-        android:id="@+id/menu6"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/menu6">
-    </item>
-  
+        android:title="@string/menu4"/>
     <item
         android:id="@+id/menu3"
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/menu3"/>
+    
 
 </menu>

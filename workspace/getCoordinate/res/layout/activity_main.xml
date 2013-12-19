@@ -42,16 +42,14 @@
         android:layout_marginRight="26dp"
         android:text="下降↓" />
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+  <Button
+        android:id="@+id/button11"
+       android:layout_width="150dp"
+        android:layout_height="50dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_marginBottom="14dp"
         android:layout_marginLeft="48dp"
-        android:text="音声認識を開始" />
-
- 
+        android:text="つかむ/はなす" />
 
 </RelativeLayout>

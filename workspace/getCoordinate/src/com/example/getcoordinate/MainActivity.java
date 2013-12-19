@@ -2,23 +2,19 @@ package com.example.getcoordinate;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import com.example.getcoordinate.R.id;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.speech.RecognizerIntent;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,52 +25,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.example.getcoordinate.BallSurFaceView;
 
 public class MainActivity extends Activity implements OnClickListener {
-	private static final int REQUEST_CODE = 0;
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		// ver3.0から追加されたStrictModeに対するエラーの対処
-		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-				.permitAll().build());
-
-		/* ボタンの実装 */
-		// ボタンの取得
-		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
-		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
-		Button button3 = (Button) findViewById(R.id.button3); // 音声認識ボタン
-
-		// リスナーの登録
-		button1.setOnClickListener(this);
-		button2.setOnClickListener(this);
-		button3.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				try {
-					// インテント作成
-					Intent intent = new Intent(
-							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
-					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(
-							RecognizerIntent.EXTRA_PROMPT,
-							"「上」「下」「左」「右」「前」「後ろ」「つかむ」「はなす」のうち一つを発声してください。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。"); // 音声認識時に表示する文字
-					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
-					// インテント発行
-					startActivityForResult(intent, REQUEST_CODE);
-				} catch (ActivityNotFoundException e) {
-					// このインテントに応答できるアクティビティがインストールされていない場合(エミュレータでの実行時に発生する例外処理)
-					Toast.makeText(MainActivity.this,
-							"ActivityNotFoundException", Toast.LENGTH_LONG)
-							.show();
-				}
-			}
-		});
-
-	}
-
 	int i = 0;
 	int j = 0;
 	int k = 0;
@@ -93,21 +45,50 @@ public class MainActivity extends Activity implements OnClickListener {
 	float temp2Z = 0;
 	float SacX = 0;
 	float SacY = 0;
-	int sendX = 0;
-	int sendY = 0;
-	int sendZ = 0;
+
 	int acmove = 1;
 	float count = 0;
+	int activitymode = 0;
 	int vcX = 0;
 	int vcY = 0;
 	int vcZ = 0;
-	int mode = 0;
-	int voiceI = 0;
-	String voiceJ = null;
-	String textJ = null;
-	String[][] voice = { { "162", "51", "75" }, { "166", "9", "75" },
-			{ "167", "-33", "75" }, { "123", "49", "75" },
-			{ "124", "7", "75" }, { "124", "-35", "75" } };
+	int sendX = 0;
+	int sendY = 0;
+	int sendZ = 0;
+	int openclose1 = 0;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		// ver3.0から追加されたStrictModeに対するエラーの対処
+		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build());
+		Intent intent = getIntent();
+		activitymode = intent.getIntExtra("activitymode", activitymode);
+		if (activitymode == 1) { // 位置情報を各アクティビティから受け取り統一する
+			x = intent.getIntExtra("sendY", y);
+			y = intent.getIntExtra("sendX", x);
+			z = intent.getIntExtra("sendZ", z);
+			activitymode = 0;
+		} else if (activitymode == 2) {
+			x = intent.getIntExtra("vcY", y);
+			y = intent.getIntExtra("vcX", x);
+			z = intent.getIntExtra("vcZ", z);
+			activitymode = 0;
+		}
+
+		/* ボタンの実装 */
+		// ボタンの取得
+		Button button1 = (Button) findViewById(R.id.button1); // 上昇ボタン
+		Button button2 = (Button) findViewById(R.id.button2); // 下降ボタン
+		Button button11 = (Button) findViewById(R.id.button11);
+
+		// リスナーの登録
+		button1.setOnClickListener(this);
+		button2.setOnClickListener(this);
+		button11.setOnClickListener(this);
+
+	}
 
 	// スクリーンがタッチされたかどうかの判定
 	public boolean onTouchEvent(MotionEvent event) {
@@ -139,8 +120,10 @@ public class MainActivity extends Activity implements OnClickListener {
 		String superX = Integer.toString(x);
 		String superY = Integer.toString(y);
 		String superZ = Integer.toString(z);
+		Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+		vib.vibrate(50);
 		// ボタン1(上昇)が押された場合
-		if (v.getId() == R.id.button1) {
+		 if (v.getId() == R.id.button1) {
 			Toast toast = Toast.makeText(this, "上昇！", Toast.LENGTH_SHORT);
 			toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
 			toast.show();
@@ -164,7 +147,28 @@ public class MainActivity extends Activity implements OnClickListener {
 			superZ = Integer.toString(tempZ);
 			z = tempZ;
 			connect(superY, superX, superZ);
-		} 
+		}else if (v.getId() == R.id.button11) {
+		
+			if (openclose1 == 0) {
+				Toast toast = Toast.makeText(this, "アームを閉じます。",
+						Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.LEFT, 36, 70);
+				toast.show();
+				i = 7;
+				connect(null, null, null);
+				i = 0;
+				openclose1 = 1;
+			} else {
+				Toast toast = Toast.makeText(this, "アームを開きます。",
+						Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.LEFT, 36, 70);
+				toast.show();
+				i = 8;
+				connect(null, null, null);
+				i = 0;
+				openclose1 = 0;
+			}
+		}
 	}
 
 	@SuppressLint("FloatMath")
@@ -299,9 +303,24 @@ public class MainActivity extends Activity implements OnClickListener {
 			break;
 		case R.id.menu4:
 			Intent intent = new Intent();
-            intent.setClassName("com.example.getcoordinate", "com.example.getcoordinate.SubActivity");
-            startActivity(intent);
-		break;
+			intent.setClassName("com.example.getcoordinate",
+					"com.example.getcoordinate.SubActivity");
+			intent.putExtra("x", x);
+			intent.putExtra("y", y);
+			intent.putExtra("z", z);
+			intent.putExtra("activitymode", activitymode);
+			startActivity(intent);
+			break;
+		case R.id.menu7:
+			Intent intent2 = new Intent();
+			intent2.setClassName("com.example.getcoordinate",
+					"com.example.getcoordinate.VCActivity");
+			intent2.putExtra("x", x);
+			intent2.putExtra("y", y);
+			intent2.putExtra("z", z);
+			intent2.putExtra("activitymode", activitymode);
+			startActivity(intent2);
+			break;
 		case R.id.menu3:
 			i = -1;
 			connect(null, null, null);
@@ -354,143 +373,4 @@ public class MainActivity extends Activity implements OnClickListener {
 		diag.show();
 	}
 
-	// ///////////音声認識/////////////
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// 自分が投げたインテントであれば応答する
-		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-			String resultsString = "";
-
-			// 結果文字列リスト
-			ArrayList<String> results = data
-					.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-
-			for (int i = 0; i < results.size(); i++) {
-				// ここでは、文字列が複数あった場合に結合しています
-				resultsString += results.get(i);
-			}
-
-			// 以外の入力のみ結果を表示する
-			String patternString = "[1-6]+"; // 1から6のどれかひとつ以上
-			String patternString2 = "[前後右左上下]+";
-			Pattern p = Pattern.compile(patternString);
-			Pattern p2 = Pattern.compile(patternString2);
-			Matcher m = p.matcher(resultsString);
-			Matcher m2 = p2.matcher(resultsString);
-			String[] hikaku = resultsString.split("");// 音声認識により入力された文字を位置文字ずつ配列に格納
-
-			vcX = y;
-			vcY = x;
-			vcZ = z;
-			Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
-			if (m2.find() == true) {
-				for (j = 0; j < hikaku.length; j++) {
-					if ("上".equals(hikaku[j])) { // 「上」と入力があった場合
-						Toast.makeText(this, "上に移動します。", Toast.LENGTH_LONG)
-								.show();
-						for (j = 0; j < hikaku.length; j++) {
-							vcZ += 10;
-							if (vcZ >= 160) {
-								vcZ = 160;
-							}
-						}
-
-					} else if ("下".equals(hikaku[j])) { // 「下」と入力があった場合
-						Toast.makeText(this, "下に移動します。", Toast.LENGTH_LONG)
-						.show();
-						vcZ -= 10;
-						if (vcZ <= 60) {
-							vcZ = 60;
-						}
-					} else if ("左".equals(hikaku[j])) { // 「左」と入力があった場合
-						Toast.makeText(this, "左に移動します。", Toast.LENGTH_LONG)
-						.show();
-						vcY += 10;
-						if (vcY >= 56) {
-							vcY = 56;
-						}
-					} else if ("右".equals(hikaku[j])) { // 「右」と入力があった場合
-						Toast.makeText(this, "右に移動します。", Toast.LENGTH_LONG)
-						.show();
-						vcY -= 10;
-						if (vcY <= -56) {
-							vcY = -56;
-						}
-					} else if ("前".equals(hikaku[j])) { // 「前」と入力があった場合
-						Toast.makeText(this, "前に移動します。", Toast.LENGTH_LONG)
-						.show();
-						vcX += 10;
-						if (vcX >= 140) {
-							vcX = 140;
-						}
-					} else if ("後".equals(hikaku[j])) { // 「後ろ」と入力があった場合
-						Toast.makeText(this, "後に移動します。", Toast.LENGTH_LONG)
-						.show();
-						vcX -= 10;
-						if (vcX <= 40) {
-							vcX = 40;
-						}
-					}
-				}
-			} else if ("つかむ".equals(resultsString)) { // 「つかむ」と入力があった場合
-				Toast.makeText(this, "アームを閉じます。", Toast.LENGTH_LONG).show();
-				i = 7;
-				connect(null, null, null);
-				i = 0;
-				mode = 1;
-			} else if ("話す".equals(resultsString)) { // 「はなす」と入力があった場合
-				Toast.makeText(this, "アームを開きます。", Toast.LENGTH_LONG).show();
-				i = 8;
-				connect(null, null, null);
-				i = 0;
-				mode = 1;
-			}else if (m.find() == true) { // 1から6のどれかに移動する命令の時
-				for (j = 0; j < hikaku.length; j++) {
-					if (voiceI < 1) { // 一回目のみ処理を行い、それ以降は処理を行わない。ここの値を変えることで数字をいくつ認識するか変える事ができる。
-						for (k = 1; k < 7; k++) { // 1から6までの中からどの数字と一致するか確認する
-							voiceJ = Integer.toString(k); // 確認する数字の方をStringにする
-							if (voiceJ.equals(hikaku[j])) { // 数字が等しいかどうか判定
-								if (voiceI == 0) { // 一回目の数字の一致があった場合のみ処理を行い、それ以降はfor文を終了する
-									textJ = hikaku[j]; // 画面に表示する文字の代入
-									i = Integer.parseInt(hikaku[j]); // 移動する位置の番号をiに代入
-									connect(null, null, null); // ダミーの座標情報（実際には送信しない）を使い、connectを呼び出す
-									i = 0; // iを座標送信時の値に戻す
-									voiceI++; // 数字を一回認識した
-									x = Integer.parseInt(voice[k - 1][0]); // 現在地の統一
-									y = Integer.parseInt(voice[k - 1][1]);
-									z = Integer.parseInt(voice[k - 1][2]);
-								} else { // 二回目以降は処理を行わない
-									break;
-								}
-							}
-						}
-					} else { // 二回目以降は処理を行わない
-						break;
-					}
-				}
-				Toast.makeText(this, "現在地から" + textJ + "にボールを移動します。",
-						Toast.LENGTH_LONG).show(); // どこにボールを移動するか画面に表示
-				textJ = null; // 変数の初期化
-				voiceI = 0; // 変数の初期化
-				mode = 1; // 座標を送信しない
-			} else {
-				Toast.makeText(
-						this,
-						"もう一度お願いします。\n認識できる単語は「上」「下」「左」「右」「前」「後」「つかむ」「はなす」です。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。",
-						Toast.LENGTH_LONG).show();
-				mode = 1;
-			}
-			if (mode == 0) { // 「上」「下」「前」「後ろ」「右」「左」と入力があった場合処理を行う
-				String voiceX = Integer.toString(vcX);
-				String voiceY = Integer.toString(vcY);
-				String voiceZ = Integer.toString(vcZ);
-				connect(voiceX, voiceY, voiceZ); // 座標の送信
-				x = vcY;
-				y = vcX;
-				z = vcZ;
-			}
-			mode = 0; // 座標を送信する（初期値に戻す）
-		}
-
-		super.onActivityResult(requestCode, resultCode, data);
-	}
 }

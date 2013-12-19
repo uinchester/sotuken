@@ -6,40 +6,40 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 import android.app.AlertDialog;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.speech.RecognizerIntent;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Log;
-import com.example.getcoordinate.BallSurFaceView;
 import com.example.getcoordinate.MainActivity;
 
 public class SubActivity extends MainActivity implements SensorEventListener {
-	private static final int REQUEST_CODE = 0;
 	private SensorManager manager;
 	private TextView values;
 	private float acX, acY, acZ = 0; // 加速度センサーの値を受け取る変数
+	int activitymode = 0;
 
 	// private BallSurFaceView mSurFaceView;
 
@@ -52,9 +52,22 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 				.permitAll().build());
 		// mSurFaceView = new BallSurFaceView(this);
 		// setContentView(mSurFaceView);
+		Intent intent = getIntent();
+		activitymode = intent.getIntExtra("activitymode", activitymode);
+		if (activitymode == 0) {
+			sendX = intent.getIntExtra("y", y);
+			sendY = intent.getIntExtra("x", x);
+			sendZ = intent.getIntExtra("z", z);
+			activitymode = 1;
+		} else if (activitymode == 2) {
+			sendX = intent.getIntExtra("vcX", vcX);
+			sendY = intent.getIntExtra("vcY", vcY);
+			sendZ = intent.getIntExtra("vcZ", vcZ);
+			activitymode = 1;
+		}
 		/* ボタンの実装 */
 		// ボタンの取得
-		Button button5 = (Button) findViewById(R.id.button5); // 音声認識ボタン
+		Button button5 = (Button) findViewById(R.id.button5); // つかむ/はなすボタン
 		Button button6 = (Button) findViewById(R.id.button6); // 加速度センサーのON/OFF切り替え用ボタン
 		Button button7 = (Button) findViewById(R.id.button7);
 		Button button8 = (Button) findViewById(R.id.button8);
@@ -64,35 +77,12 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 		values = (TextView) findViewById(R.id.value_id);
 		manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		// リスナーの登録
-
+		button5.setOnClickListener(this);
 		button6.setOnClickListener(this);
 		button7.setOnClickListener(this);
 		button8.setOnClickListener(this);
 		button9.setOnClickListener(this);
 		button10.setOnClickListener(this);
-		button5.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				try {
-					// インテント作成
-					Intent intent = new Intent(
-							RecognizerIntent.ACTION_RECOGNIZE_SPEECH); // ACTION_WEB_SEARCH
-					intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-							RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-					intent.putExtra(
-							RecognizerIntent.EXTRA_PROMPT,
-							"「上」「下」「左」「右」「前」「後ろ」「つかむ」「はなす」のうち一つを発声してください。\nまた、「1」「2」「3」「4」「5」「6」により特定の位置にボールを運ぶことができます。"); // 音声認識時に表示する文字
-					intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1); // 返す候補を１つにする
-					// インテント発行
-					startActivityForResult(intent, REQUEST_CODE);
-				} catch (ActivityNotFoundException e) {
-					// このインテントに応答できるアクティビティがインストールされていない場合(エミュレータでの実行時に発生する例外処理)
-					Toast.makeText(SubActivity.this,
-							"ActivityNotFoundException", Toast.LENGTH_LONG)
-							.show();
-				}
-			}
-		});
-
 	}
 
 	float previousDistance = 0;
@@ -100,14 +90,12 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 	long time = 0;
 	float SacX = 0;
 	float SacY = 0;
-	int sendX = y;
-	int sendY = x;
-	int sendZ = z;
 	int acmove = 1;
 	float acflont = -3;
 	float acback = 3;
 	float acleft = -3;
 	float acright = 3;
+	int openclose = 0;
 
 	public boolean onTouchEvent(MotionEvent event) {
 		return false;
@@ -116,15 +104,38 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 
 	// ボタンが押された時のアクション
 	public void onClick(View v) {
-		if (v.getId() == R.id.button6) {
+		Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+		vib.vibrate(50);
+		if (v.getId() == R.id.button5) {
+			if (openclose == 0) {
+				Toast toast = Toast.makeText(this, "アームを閉じます。",
+						Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.LEFT, 46, 90);
+				toast.show();
+				i = 7;
+				connect(null, null, null);
+				i = 0;
+				openclose = 1;
+			} else {
+				Toast toast = Toast.makeText(this, "アームを開きます。",
+						Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.BOTTOM | Gravity.LEFT, 46, 90);
+				toast.show();
+				i = 8;
+				connect(null, null, null);
+				i = 0;
+				openclose = 0;
+			}
+
+		} else if (v.getId() == R.id.button6) {
 			if (acmove == 0) {
 				Toast toast = Toast.makeText(this, "無効", Toast.LENGTH_SHORT);
-				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
+				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 28, 90);
 				toast.show();
 				acmove = 1;
 			} else {
 				Toast toast = Toast.makeText(this, "有効", Toast.LENGTH_SHORT);
-				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 75, 75);
+				toast.setGravity(Gravity.BOTTOM | Gravity.RIGHT, 28, 90);
 				toast.show();
 				acmove = 0;
 			}
@@ -136,20 +147,21 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 					Toast.LENGTH_SHORT).show();
 
 		} else if (v.getId() == R.id.button8) {
-			acright = acY;
-			String right = Float.toString(acright);
-			Toast.makeText(this, "前のしきい値を" + right + "に変更しました。",
+			acleft = acY;
+			String left = Float.toString(acleft);
+			Toast.makeText(this, "左のしきい値を" + left + "に変更しました。",
 					Toast.LENGTH_SHORT).show();
 		} else if (v.getId() == R.id.button9) {
-			acleft = acX;
-			String left = Float.toString(acleft);
-			Toast.makeText(this, "前のしきい値を" + left + "に変更しました。",
+
+			acright = acY;
+			String right = Float.toString(acright);
+			Toast.makeText(this, "右のしきい値を" + right + "に変更しました。",
 					Toast.LENGTH_SHORT).show();
 
 		} else if (v.getId() == R.id.button10) {
-			acback = acY;
+			acback = acX;
 			String back = Float.toString(acback);
-			Toast.makeText(this, "前のしきい値を" + back + "に変更しました。",
+			Toast.makeText(this, "後のしきい値を" + back + "に変更しました。",
 					Toast.LENGTH_SHORT).show();
 
 		}
@@ -245,7 +257,21 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 			Intent intent = new Intent();
 			intent.setClassName("com.example.getcoordinate",
 					"com.example.getcoordinate.MainActivity");
+			intent.putExtra("sendX", sendX);
+			intent.putExtra("sendY", sendY);
+			intent.putExtra("sendZ", sendZ);
+			intent.putExtra("activitymode", activitymode);
 			startActivity(intent);
+			break;
+		case R.id.menu7:
+			Intent intent2 = new Intent();
+			intent2.setClassName("com.example.getcoordinate",
+					"com.example.getcoordinate.VCActivity");
+			intent2.putExtra("sendX", sendX);
+			intent2.putExtra("sendY", sendY);
+			intent2.putExtra("sendZ", sendZ);
+			intent2.putExtra("activitymode", activitymode);
+			startActivity(intent2);
 			break;
 		case R.id.menu6:
 			getAC();
@@ -305,26 +331,25 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 
 	void getAC() {
 		AlertDialog.Builder diag2 = new AlertDialog.Builder(this);
-		diag2.setTitle("しきい値の初期化");
+		diag2.setTitle("しきい値の初期化").setMessage("しきい値を初期化しますか？");
 		diag2.setPositiveButton("キャンセル", new DialogInterface.OnClickListener() {
 
 			public void onClick(DialogInterface dialog, int which) {
 
 			}
 		});
-		diag2.setNegativeButton("デフォルトに戻す",
-				new DialogInterface.OnClickListener() {
+		diag2.setNegativeButton("初期化する", new DialogInterface.OnClickListener() {
 
-					public void onClick(DialogInterface dialog, int which) {
-						acflont = -3;
-						acback = 3;
-						acleft = -3;
-						acright = 3;
-						Toast.makeText(SubActivity.this, "しきい値をデフォルトに戻しました。",
-								Toast.LENGTH_SHORT).show();
-					}
+			public void onClick(DialogInterface dialog, int which) {
+				acflont = -3;
+				acback = 3;
+				acleft = -3;
+				acright = 3;
+				Toast.makeText(SubActivity.this, "しきい値をデフォルト(全て3.0)に戻しました。",
+						Toast.LENGTH_SHORT).show();
+			}
 
-				});
+		});
 		diag2.show();
 	}
 
@@ -364,8 +389,6 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 				SacX = SacX + acX; // センサーの値を足していく
 				SacY = SacY + acY;
 				count++; // 何回センサーで値を取得したかカウントする
-				sendY = x; // 現在地情報を統一
-				sendX = y;
 				// 現在の時間
 				long nowAC = System.currentTimeMillis();
 				// 座標を送った時間と現在の時間を比べる(ミリ秒)
@@ -422,7 +445,7 @@ public class SubActivity extends MainActivity implements SensorEventListener {
 					y = sendX;
 					String X = Integer.toString(sendX);
 					String Y = Integer.toString(sendY);
-					String Z = Integer.toString(z);
+					String Z = Integer.toString(sendZ);
 
 					connect(X, Y, Z); // 座標の送信
 					String str = "加速度センサー値:" + "\nX軸:" + acX + "\nY軸:" + acY;

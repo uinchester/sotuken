@@ -8,6 +8,9 @@
     <string name="menu4">加速度センサー</string>
     <string name="title_activity_main">座標送信</string>
     <string name="title_activity_sub">加速度センサー</string>
+    <string name="title_activity_vc">音声認識</string>
     <string name="menu5">タッチ操作</string>
-    <string name="menu6">しきい値変更</string>
+    <string name="menu6">しきい値の初期化</string>
+    <string name="menu7">音声認識</string>
+
 </resources>
