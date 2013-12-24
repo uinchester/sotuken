@@ -15,18 +15,19 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main" >
+            android:label="@string/title_activity_main"  android:screenOrientation="landscape" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SubActivity" android:label="@string/title_activity_sub" android:icon="@drawable/ic_ac">
+        <activity android:name=".SubActivity" android:label="@string/title_activity_sub" android:screenOrientation="landscape" android:icon="@drawable/ic_ac" android:launchMode="singleInstance">
         </activity>
-        <activity android:name=".VCActivity" android:label="@string/title_activity_vc" android:icon="@drawable/ic_vc">
+        <activity android:name=".VCActivity" android:label="@string/title_activity_vc" android:screenOrientation="landscape"  android:icon="@drawable/ic_vc" android:launchMode="singleInstance">
         </activity>
     </application>
 
