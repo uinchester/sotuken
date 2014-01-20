@@ -31,7 +31,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginRight="127dp"
-        android:text="上昇↑" />
+        android:text="@string/up" />
 
     <Button
         android:id="@+id/button2"
@@ -40,7 +40,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginRight="26dp"
-        android:text="下降↓" />
+        android:text="@string/down" />
 
   <Button
         android:id="@+id/button11"
@@ -50,6 +50,6 @@
         android:layout_alignParentLeft="true"
         android:layout_marginBottom="14dp"
         android:layout_marginLeft="48dp"
-        android:text="つかむ/はなす" />
+        android:text="@string/arm" />
 
 </RelativeLayout>

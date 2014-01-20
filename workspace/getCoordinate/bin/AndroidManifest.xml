@@ -18,16 +18,16 @@
         
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"  android:screenOrientation="landscape" android:launchMode="singleInstance">
+            android:label="@string/title_activity_main"  android:screenOrientation="landscape" android:launchMode="standard">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SubActivity" android:label="@string/title_activity_sub" android:screenOrientation="landscape" android:icon="@drawable/ic_ac" android:launchMode="singleInstance">
+        <activity android:name=".SubActivity" android:label="@string/title_activity_sub" android:screenOrientation="landscape" android:icon="@drawable/ic_ac" android:launchMode="standard">
         </activity>
-        <activity android:name=".VCActivity" android:label="@string/title_activity_vc" android:screenOrientation="landscape"  android:icon="@drawable/ic_vc" android:launchMode="singleInstance">
+        <activity android:name=".VCActivity" android:label="@string/title_activity_vc" android:screenOrientation="landscape"  android:icon="@drawable/ic_vc" android:launchMode="standard">
         </activity>
     </application>
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
@@ -23,9 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.*;
 import com.example.getcoordinate.MainActivity;
 
 public class VCActivity extends MainActivity {
@@ -85,6 +84,21 @@ public class VCActivity extends MainActivity {
 				}
 			}
 		});
+		
+		final Activity activity = this ;
+		String[] arr = {"認識可能な言葉一覧"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,arr);
+		final ListView List =(ListView)this.findViewById(R.id.listView1);
+		List.setAdapter(adapter);
+		List.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView<?> adapter, View view, int arg2,
+					long arg3) {
+				TextView text1 = (TextView)view;
+				
+				
+			}});
+		
+		
 
 	}
 	public boolean onTouchEvent(MotionEvent event) {
